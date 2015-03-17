@@ -6,12 +6,6 @@
 (def yMax 1)
 
 (defn get-color [iteration]
-  (comment (cond
-             (< iteration 100) 0
-             (< iteration 700) 1
-             (< iteration 800) 2
-             (< iteration 950) 3
-             (<= iteration 1000) 4))
   (mod iteration 255))
 
 (defn scale [v a b min max]
@@ -44,4 +38,4 @@
                             x (range width)]
                         [(scaleX (cartesian x mid-width) mid-width)
                          (scaleY (cartesian y mid-height) mid-height)])]
-    (map processPoint scaled-points)))
+    (pmap processPoint scaled-points)))

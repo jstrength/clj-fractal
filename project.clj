@@ -6,5 +6,6 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [quil "2.2.5"]]
   :main ^:skip-aot clj-fractal.core
+  :uberjar-name "fractal.jar"
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
