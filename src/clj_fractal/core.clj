@@ -8,7 +8,7 @@
 
 (defn setup []
   (q/frame-rate 1)
-  (q/color-mode :hsb)
+  (q/color-mode :hsb 1.0)
   (q/no-loop))
 
 (defn draw []
@@ -16,7 +16,7 @@
         colors (time (vec (mandelbrot width height)))]
     (doseq [curr (range (* width height))]
       (let [color (colors curr)]
-        (aset pixels curr (q/color (mod color 360) 300 300))))
+        (aset pixels curr (q/color color 300 300))))
     (q/update-pixels)))
 
 (defn sketch []

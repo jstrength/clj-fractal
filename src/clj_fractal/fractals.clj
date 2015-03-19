@@ -1,4 +1,5 @@
-(ns clj-fractal.fractals)
+(ns clj-fractal.fractals
+  )
 
 (def xMin -2.5)
 (def xMax 1)
@@ -39,5 +40,10 @@
                         [(scale-x (cartesian x mid-width) mid-width)
                          (scale-y (cartesian y mid-height) mid-height)])]
     (let [points (pmap process-point scaled-points)
-          histo (create-histogram points)]
-      (map #(histo %) points))))
+          histo (create-histogram points)
+          total (reduce + (vals histo))]
+      (pmap (fn [p]
+              (reduce (fn [hue iteration]
+                        (+ hue (/ (histo iteration 0) total)))
+                      0.0 (range p)))
+            points))))
