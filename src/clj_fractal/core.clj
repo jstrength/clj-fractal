@@ -5,18 +5,20 @@
 
 (def width 800)
 (def height 600)
+(def max-color 100.0)
 
 (defn setup []
   (q/frame-rate 1)
-  (q/color-mode :hsb 1.0)
+  (q/color-mode :hsb max-color)
   (q/no-loop))
 
 (defn draw []
   (let [pixels (q/pixels)
         colors (time (vec (mandelbrot width height)))]
+    ;(println colors)
     (doseq [curr (range (* width height))]
-      (let [color (colors curr)]
-        (aset pixels curr (q/color color 300 300))))
+      (let [hue (mod (colors curr) max-color)]
+        (aset pixels curr (q/color hue max-color max-color))))
     (q/update-pixels)))
 
 (defn sketch []

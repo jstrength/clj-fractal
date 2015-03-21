@@ -1,10 +1,11 @@
-(ns clj-fractal.fractals
-  )
+(ns clj-fractal.fractals)
 
 (def xMin -2.5)
 (def xMax 1)
 (def yMin -1)
 (def yMax 1)
+(def max-iteration 1000)
+(def bailout 65536)
 
 (defn scale [v a b min max]
   (+ (/ (* (- b a) (- v min)) (- max min)) a))
@@ -22,15 +23,19 @@
   (loop [x x0
          y y0
          iteration 0]
-    (if (or (>= iteration 1000)
-            (<= 4 (+ (* x x) (* y y))))
-      iteration
+    (if (or (>= iteration max-iteration)
+            (<= bailout (+ (* x x) (* y y))))
+      (if (< iteration max-iteration)
+        (-> (Math/sqrt (+ (* x x) (* y y)))
+            (Math/log)
+            (/ (Math/log 2))
+            (Math/log)
+            (/ (Math/log 2))
+            (#(- (inc iteration) %)))
+        iteration)
       (let [newX (+ x0 (- (* x x) (* y y)))
             newY (+ y0 (* 2 x y))]
         (recur newX newY (inc iteration))))))
-
-(defn create-histogram [points]
-  (reduce (fn [m p] (assoc m p (inc (m p 0)))) {} points))
 
 (defn mandelbrot [width height]
   (let [mid-width (/ width 2)
@@ -39,11 +44,5 @@
                             x (range width)]
                         [(scale-x (cartesian x mid-width) mid-width)
                          (scale-y (cartesian y mid-height) mid-height)])]
-    (let [points (pmap process-point scaled-points)
-          histo (create-histogram points)
-          total (reduce + (vals histo))]
-      (pmap (fn [p]
-              (reduce (fn [hue iteration]
-                        (+ hue (/ (histo iteration 0) total)))
-                      0.0 (range p)))
-            points))))
+    (pmap process-point scaled-points)))
+
