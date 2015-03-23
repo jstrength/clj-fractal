@@ -3,8 +3,8 @@
             [clj-fractal.fractals :refer :all])
   (:gen-class))
 
-(def width 600)
-(def height 600)
+(def width 350)
+(def height 200)
 (def max-color 100.0)
 
 (defn draw-mandelbrot [data]
@@ -20,9 +20,10 @@
   )
 
 (defn setup []
-  (q/frame-rate 1)
+  (q/frame-rate 60)
   (q/color-mode :hsb max-color)
-  (q/set-state! :dim [4 -4 -4 4])
+  (q/set-state! :dim [1.0M -2.5M -1.0M 1.0M]
+                :origin [0.0M 0.0M])
   ;(draw-mandelbrot (time (vec (:data (mandelbrot [width height] [(/ width 2) (/ height 2)] @(q/state-atom))))))
   )
 
@@ -30,7 +31,7 @@
   (when (q/mouse-pressed?)
     (println (q/pmouse-x) " - " (q/pmouse-y))
     (println (q/mouse-x) " - " (q/mouse-y))
-    (let [brot (mandelbrot [width height] [(/ width 2) (/ height 2)] (:dim @(q/state-atom)))
+    (let [brot (mandelbrot [width height] [(q/mouse-x) (q/mouse-y)] (:dim @(q/state-atom)) (:origin @(q/state-atom)))
           data (time (vec (:data brot)))]
       (draw-mandelbrot data)
       (swap! (q/state-atom) assoc :dim (:dim brot)))))
