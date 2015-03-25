@@ -1,10 +1,10 @@
 (ns clj-fractal.fractals
-  (:require [clojure.math.numeric-tower :as math]))
+  (:require [quil.core :as q]))
 
 (def max-iteration 2000)
 (def bailout 65536)
-(def dim [2.5 -2.5 -2.5 2.5])
-(def ZOOM 16)
+(def dim [1.5 -1.5 -1.5 1.5])
+(def ZOOM 8)
 
 (defn scale [v a b min max]
   (+ (/ (* (- b a) (- v min)) (- max min)) a))
@@ -22,10 +22,10 @@
   (- mid y))
 
 (defn process-point [[x0 y0]]
-  (let [y02 (Math/pow y0 2)
-        q (+ (Math/pow (- x0 1/4) 2) y02)]
+  (let [y02 (q/sq y0)
+        q (+ (q/sq (- x0 1/4)) y02)]
     (if (or (> (* 1/4 y02) (* q (+ q (- x0 1/4))))          ;cardioid checking
-            (> 1/16 (+ y02 (Math/pow (inc x0) 2))))         ;period-2 bulb checking
+            (> 1/16 (+ y02 (q/sq (inc x0)))))         ;period-2 bulb checking
       0
       (loop [x (double x0)
              y (double y0)
@@ -37,11 +37,11 @@
           (if (or (>= iteration max-iteration)
                   (<= bailout (+ x2 y2)))
             (if (< iteration max-iteration)
-              (-> (math/sqrt (+ x2 y2))
-                  Math/log
-                  (/ (Math/log 2))
-                  Math/log
-                  (/ (Math/log 2))
+              (-> (q/sqrt (+ x2 y2))
+                  q/log
+                  (/ (q/log 2))
+                  q/log
+                  (/ (q/log 2))
                   (#(- % (inc iteration))))
               iteration)
             (let [new-x (+ x0 #_(* 2 x e) #_(* e e) (- x2 y2))

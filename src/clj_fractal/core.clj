@@ -3,8 +3,8 @@
             [clj-fractal.fractals :refer :all])
   (:gen-class))
 
-(def width 1600)
-(def height 1000)
+(def width 400)
+(def height 400)
 (def max-color 100.0)
 
 (defn draw-mandelbrot [data]
@@ -16,30 +16,39 @@
   (q/update-pixels))
 
 (defn setup []
-  (q/frame-rate 60)
   (q/color-mode :hsb max-color)
+  (q/no-loop)
   (q/set-state! :zoom 1
                 :origin [0.0 0.0]))
 
 (defn draw []
-  (when (or (= 1 (:zoom @(q/state-atom))) (q/mouse-pressed?))
-    (println "clicked! [" (q/mouse-x) (q/mouse-y) "]")
-    (println "zoomed by " (:zoom @(q/state-atom)) )
-    (let [new-origin-x (if (q/mouse-pressed?) (q/mouse-x) (/ width 2))
-          new-origin-y (if (q/mouse-pressed?) (q/mouse-y) (/ height 2))
-          brot (time (mandelbrot [width height] [new-origin-x new-origin-y] (:zoom @(q/state-atom)) (:origin @(q/state-atom))))
-          data (vec (:data brot))]
-      (time (draw-mandelbrot data))
-      (swap! (q/state-atom) assoc
-             :origin (:origin brot)
-             :zoom (:zoom brot)))))
+  (println "clicked! [" (q/mouse-x) (q/mouse-y) "]")
+  (println "zoomed by " (:zoom @(q/state-atom)))
+  (let [new-origin-x (if (= 1 (:zoom @(q/state-atom))) (/ width 2) (q/mouse-x))
+        new-origin-y (if (= 1 (:zoom @(q/state-atom))) (/ height 2) (q/mouse-y))
+        brot (time (mandelbrot [width height] [new-origin-x new-origin-y] (:zoom @(q/state-atom)) (:origin @(q/state-atom))))
+        data (vec (:data brot))]
+    (time (draw-mandelbrot data))
+    (swap! (q/state-atom) assoc
+           :origin (:origin brot)
+           :zoom (:zoom brot))))
+
+(defn zoom-status [options]
+  (let [draw (:draw options (fn []))]
+    (assoc options :draw (fn []
+                           (let [zoom (:zoom @(q/state-atom))]
+                             (draw)
+                             (q/fill 0)
+                             (q/text (str zoom "x Zoom") 0 10))))))
 
 (defn sketch []
   (q/defsketch fractal
                :title "Fractal"
                :setup setup
                :draw draw
-               :size [width height]))
+               :mouse-clicked q/redraw
+               :size [width height]
+               :middleware [zoom-status]))
 
 (defn -main [& args]
   (sketch))
