@@ -1,8 +1,8 @@
 (ns clj-fractal.fractals
   (:require [quil.core :as q]))
 
-(def max-iteration 2000)
-(def bailout 65536)
+(def max-iteration 10000)
+(def bailout 655360)
 (def dim [1.5 -1.5 -1.5 1.5])
 (def ZOOM 8)
 
@@ -27,8 +27,8 @@
     (if (or (> (* 1/4 y02) (* q (+ q (- x0 1/4))))          ;cardioid checking
             (> 1/16 (+ y02 (q/sq (inc x0)))))         ;period-2 bulb checking
       0
-      (loop [x (double x0)
-             y (double y0)
+      (loop [x x0
+             y y0
              ;e 0.000000000001
              iteration 0
              ]
@@ -74,11 +74,11 @@
                      (/ (if (= 1 zoom) 1 (/ zoom ZOOM)))
                      (+ prev-origin-y))
         view-port (calc-view-port [origin-x origin-y] zoom)
-        scaled-points (doall (for [y (range (second screen-dim))
-                                   x (range (first screen-dim))]
-                               [(scale-x (cartesian-x x mid-width) mid-width view-port)
-                                (scale-y (cartesian-y y mid-height) mid-height view-port)]))]
-    {:data   (doall (pmap process-point scaled-points))
+        scaled-points (time (doall (for [y (range (second screen-dim))
+                                         x (range (first screen-dim))]
+                                     [(scale-x (cartesian-x x mid-width) mid-width view-port)
+                                      (scale-y (cartesian-y y mid-height) mid-height view-port)])))]
+    {:data   (time (doall (pmap process-point scaled-points)))
      :zoom   (* ZOOM zoom)
      :origin [origin-x origin-y]}))
 

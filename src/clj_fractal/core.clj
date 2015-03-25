@@ -8,12 +8,11 @@
 (def max-color 100.0)
 
 (defn draw-mandelbrot [data]
-  (let [pixels (q/pixels)]
-    (doseq [curr (range (* width height))]
-      (let [hue (mod (data curr) max-color)]
-        (aset pixels curr (q/color hue max-color max-color)))))
-  (println "done")
-  (q/update-pixels))
+  (doseq [x (range width)
+          y (range height)]
+    (let [hue (mod (data (+ x (* width y))) max-color)]
+      (q/set-pixel x y (q/color hue max-color max-color))))
+  (println "done"))
 
 (defn setup []
   (q/color-mode :hsb max-color)
@@ -39,7 +38,7 @@
                            (let [zoom (:zoom @(q/state-atom))]
                              (draw)
                              (q/fill 0)
-                             (q/text (str zoom "x Zoom") 0 10))))))
+                             (q/text (str zoom "x Zoom") 0 (q/text-ascent)))))))
 
 (defn sketch []
   (q/defsketch fractal
