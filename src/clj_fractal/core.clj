@@ -3,8 +3,8 @@
             [clj-fractal.fractals :refer :all])
   (:gen-class))
 
-(def width 700)
-(def height 400)
+(def width 1600)
+(def height 1000)
 (def max-color 100.0)
 
 (defn draw-mandelbrot [data]
@@ -29,7 +29,7 @@
           new-origin-y (if (q/mouse-pressed?) (q/mouse-y) (/ height 2))
           brot (time (mandelbrot [width height] [new-origin-x new-origin-y] (:zoom @(q/state-atom)) (:origin @(q/state-atom))))
           data (vec (:data brot))]
-      (draw-mandelbrot data)
+      (time (draw-mandelbrot data))
       (swap! (q/state-atom) assoc
              :origin (:origin brot)
              :zoom (:zoom brot)))))

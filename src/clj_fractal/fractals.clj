@@ -22,29 +22,35 @@
   (- mid y))
 
 (defn process-point [[x0 y0]]
-  (loop [x (double x0)
-         y (double y0)
-         ;e 0.000000000001
-         iteration 0]
-    (let [x2  (* x x)
-          y2  (* y y)]
-      (if (or (>= iteration max-iteration)
-              (<= bailout (+ x2 y2)))
-        (if (< iteration max-iteration)
-          (-> (math/sqrt (+ x2 y2))
-              Math/log
-              (/ (Math/log 2))
-              Math/log
-              (/ (Math/log 2))
-              (#(- % (inc iteration))))
-          iteration)
-        (let [new-x (+ x0 #_(* 2 x e) #_(* e e) (- x2 y2))
-              new-y (+ y0 #_(* 2 y e) (* x y 2))
-              ;new-e (+ (* e e) (* 2 (+ x y) e))
-              ]
-          (if (and (= x new-x) (= y new-y))
-            max-iteration
-            (recur new-x new-y #_new-e (inc iteration))))))))
+  (let [y02 (Math/pow y0 2)
+        q (+ (Math/pow (- x0 1/4) 2) y02)]
+    (if (or (> (* 1/4 y02) (* q (+ q (- x0 1/4))))          ;cardioid checking
+            (> 1/16 (+ y02 (Math/pow (inc x0) 2))))         ;period-2 bulb checking
+      0
+      (loop [x (double x0)
+             y (double y0)
+             ;e 0.000000000001
+             iteration 0
+             ]
+        (let [x2 (* x x)
+              y2 (* y y)]
+          (if (or (>= iteration max-iteration)
+                  (<= bailout (+ x2 y2)))
+            (if (< iteration max-iteration)
+              (-> (math/sqrt (+ x2 y2))
+                  Math/log
+                  (/ (Math/log 2))
+                  Math/log
+                  (/ (Math/log 2))
+                  (#(- % (inc iteration))))
+              iteration)
+            (let [new-x (+ x0 #_(* 2 x e) #_(* e e) (- x2 y2))
+                  new-y (+ y0 #_(* 2 y e) (* x y 2))
+                  ;new-e (+ (* e e) (* 2 (+ x y) e))
+                  ]
+              (if (and (= x new-x) (= y new-y))             ;periodicty checking
+                max-iteration
+                (recur new-x new-y #_new-e (inc iteration))))))))))
 
 (defn calc-view-port [[x y] zoom]
   [(+ y (/ (first dim) zoom))
