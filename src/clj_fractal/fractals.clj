@@ -1,10 +1,9 @@
 (ns clj-fractal.fractals
   (:require [quil.core :as q]))
 
-(def max-iteration 10000)
-(def bailout 655360)
+(def max-iteration 1000)
+(def bailout 65536)
 (def dim [1.5 -1.5 -1.5 1.5])
-(def ZOOM 8)
 
 (defn scale [v a b min max]
   (+ (/ (* (- b a) (- v min)) (- max min)) a))
@@ -58,7 +57,7 @@
    (+ y (/ (nth dim 2) zoom))
    (+ x (/ (nth dim 3) zoom))])
 
-(defn mandelbrot [screen-dim new-origin zoom origin]
+(defn mandelbrot [screen-dim origin new-origin curr-zoom ZOOM]
   (let [mid-width (/ (first screen-dim) 2)
         mid-height (/ (second screen-dim) 2)
         prev-origin-x (first origin)
@@ -66,19 +65,18 @@
         origin-x (-> (first new-origin)
                      (cartesian-x mid-width)
                      (scale-x mid-width dim)
-                     (/ (if (= 1 zoom) 1 (/ zoom ZOOM)))
+                     (/ (if (= 1 curr-zoom) 1 (/ curr-zoom ZOOM)))
                      (+ prev-origin-x))
         origin-y (-> (second new-origin)
                      (cartesian-y mid-height)
                      (scale-y mid-height dim)
-                     (/ (if (= 1 zoom) 1 (/ zoom ZOOM)))
+                     (/ (if (= 1 curr-zoom) 1 (/ curr-zoom ZOOM)))
                      (+ prev-origin-y))
-        view-port (calc-view-port [origin-x origin-y] zoom)
+        view-port (calc-view-port [origin-x origin-y] curr-zoom)
         scaled-points (time (doall (for [y (range (second screen-dim))
                                          x (range (first screen-dim))]
                                      [(scale-x (cartesian-x x mid-width) mid-width view-port)
                                       (scale-y (cartesian-y y mid-height) mid-height view-port)])))]
     {:data   (time (doall (pmap process-point scaled-points)))
-     :zoom   (* ZOOM zoom)
      :origin [origin-x origin-y]}))
 

@@ -6,6 +6,7 @@
 (def width 400)
 (def height 400)
 (def max-color 100.0)
+(def ZOOM 8)
 
 (defn draw-mandelbrot [data]
   (doseq [x (range width)
@@ -18,27 +19,48 @@
   (q/color-mode :hsb max-color)
   (q/no-loop)
   (q/set-state! :zoom 1
-                :origin [0.0 0.0]))
+                :origin [0.0 0.0]
+                :click-origin [(/ width 2) (/ height 2)]
+                :prev-states []))
+
+(defn pop-state []
+  (if-let [prev-state (peek (:prev-states @(q/state-atom)))]
+    (swap! (q/state-atom) assoc
+           :zoom (:zoom prev-state)
+           :origin (:origin prev-state)
+           :click-origin (:click-origin prev-state)
+           :prev-states (pop (:prev-states @(q/state-atom))))))
+
+(defn push-state []
+  (swap! (q/state-atom) assoc
+         :prev-states (conj (:prev-states @(q/state-atom)) (dissoc @(q/state-atom) :prev-states :new-origin))))
 
 (defn draw []
   (println "clicked! [" (q/mouse-x) (q/mouse-y) "]")
-  (println "zoomed by " (:zoom @(q/state-atom)))
-  (let [new-origin-x (if (= 1 (:zoom @(q/state-atom))) (/ width 2) (q/mouse-x))
-        new-origin-y (if (= 1 (:zoom @(q/state-atom))) (/ height 2) (q/mouse-y))
-        brot (time (mandelbrot [width height] [new-origin-x new-origin-y] (:zoom @(q/state-atom)) (:origin @(q/state-atom))))
-        data (vec (:data brot))]
-    (time (draw-mandelbrot data))
-    (swap! (q/state-atom) assoc
-           :origin (:origin brot)
-           :zoom (:zoom brot))))
+  (condp = (q/mouse-button)
+    :left (do (push-state)
+              (swap! (q/state-atom) assoc
+                     :zoom (* ZOOM (:zoom @(q/state-atom)))
+                     :origin (:new-origin @(q/state-atom))
+                     :click-origin [(q/mouse-x) (q/mouse-y)]))
+    :right (pop-state)
+    nil)
+  (println "Origin before - " (:origin @(q/state-atom)))
+  (let [brot (time (mandelbrot [width height]
+                               (:origin @(q/state-atom))
+                               (:click-origin @(q/state-atom))
+                               (:zoom @(q/state-atom))
+                               ZOOM))]
+    (time (draw-mandelbrot (vec (:data brot))))
+    (println "Origin after - " (:origin brot))
+    (swap! (q/state-atom) assoc :new-origin (:origin brot))))
 
 (defn zoom-status [options]
   (let [draw (:draw options (fn []))]
     (assoc options :draw (fn []
-                           (let [zoom (:zoom @(q/state-atom))]
-                             (draw)
-                             (q/fill 0)
-                             (q/text (str zoom "x Zoom") 0 (q/text-ascent)))))))
+                           (draw)
+                           (q/fill 0)
+                           (q/text (str (:zoom @(q/state-atom)) "x Zoom") 0 (q/text-ascent))))))
 
 (defn sketch []
   (q/defsketch fractal
