@@ -3,8 +3,8 @@
             [clj-fractal.fractals :refer :all])
   (:gen-class))
 
-(def width 400)
-(def height 400)
+(def width 800)
+(def height 800)
 (def max-color 100.0)
 (def ZOOM 8)
 
@@ -45,13 +45,14 @@
                      :click-origin [(q/mouse-x) (q/mouse-y)]))
     :right (pop-state)
     nil)
+
   (println "Origin before - " (:origin @(q/state-atom)))
   (let [brot (time (mandelbrot [width height]
                                (:origin @(q/state-atom))
                                (:click-origin @(q/state-atom))
                                (:zoom @(q/state-atom))
                                ZOOM))]
-    (time (draw-mandelbrot (vec (:data brot))))
+    ;(time (draw-mandelbrot (vec (:data brot))))
     (println "Origin after - " (:origin brot))
     (swap! (q/state-atom) assoc :new-origin (:origin brot))))
 
